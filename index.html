@@ -1,0 +1,151 @@
+<! DOCTYPE html>
+<html ng-app="internetShopping">
+    <head>
+        <meta charset="utf-8">
+        <title>Internet shopping web application</title>
+        <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+        <script type src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.0-rc.0/angular.min.js"></script>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"/>
+        <link rel="stylesheet" href="styles/myStyles.css"/>
+        <script src="scripts/app.js"></script>
+    </head>
+    <body ng-controller="userController">
+        <div class="page-header" ng-controller="navigationController">
+            <div class="container" ng-click="cartController.sL = false">
+                <h4>Internet shopping web application</h4>
+            </div>
+            <br>
+            <div class="row">
+                <div class="container">
+                    <div class="col-md-2">
+                        <p ng-show="userController.isAuthorized">Authorized user</p>
+                        <a href="#" ng-click="navigationController.location = 'signup'" ng-show="!userController.isAuthorized">Sign up</a>
+                    </div>
+                    <div class="col-md-2">
+                        <p ng-show="userController.isAuthorized">{{userController.username}}</p>
+                        <a href="#" ng-click="navigationController.location = 'signin'" ng-show="!userController.isAuthorized">Sign in</a>
+                    </div>
+                    <div class="col-md-offset-6" ng-controller="cartController" ng-show="userController.isAuthorized"><a href="#" ng-click="cartController.sL = true">{{cartController.size}}</a></div>
+                    <div id="orderedList" ng-controller="cartController" ng-show="cartController.sL">
+                        Ordered items:<br>
+                        <ul>
+                            <li ng-repeat="item in cartController.items">{{item.name}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div ng-controller="signUpController" ng-show="navigationController.location === 'signup'" class="row">
+            <div class="container">
+                <div class="col-md-4 col-md-offset-4">
+                    <div class="alert alert-danger" role="alert" ng-show="signUpController.malformedEmail">E-Mail should look like name@domain.com</div>
+                    <div class="alert alert-danger" role="alert" ng-show="signUpController.passwordsDontMatch">Password and retyped password don't match</div>
+                    <div class="jumbotron vertical-center">
+                        <input type="text" class="form-control" placeholder="E-Mail" ng-model="signUpController.email"><br>
+                        <input type="password" class="form-control" placeholder="Password" ng-model="signUpController.password"><br>
+                        <input type="password" class="form-control" placeholder="Retype password" ng-model="signUpController.retypedPassword"><br>
+                        <button type="button" class="btn btn-primary" ng-click="signUpRequest()">Sign Up</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div ng-controller="signinController" ng-show="navigationController.location === 'signin' && !userController.isAuthorized" class="row">
+            <div class="container">
+                <div class="col-md-4 col-md-offset-4">
+                    <div class="jumbotron vertical-center">
+                    <input type="text" class="form-control" placeholder="E-Mail" ng-model="signinController.email"><br>
+                    <input type="password" class="form-control" placeholder="Password" ng-model="signinController.password"><br>   
+                    <button type="button" class="btn btn-default" ng-click="signInRequest()">Log in</button>
+                    </div>
+                </div>
+                <div class="col-md-4"></div>
+            </div>    
+            </div>
+        </div>
+        
+        <div ng-controller="searchController" ng-show="userController.isAuthorized">
+            <!-- items filter-->
+            <div>
+                <div class="row">
+                    <div class="container">
+                        <div class="col-md-2">
+                            <p>From: <input type="text" id="datefrom" ng-model="searchController.datefrom"></p>
+                        </div>
+                        <div class="col-md-2">
+                            <p>To: <input type="text" id="dateto" ng-model="searchController.dateto"></p>
+                        </div>
+                        <div class="col-md-1 col-md-offset-2">
+                            <input id="inStockOnlyCheck" type="checkbox" class="feedCheckbox" ng-click="checkInStockOnly()">
+                            
+                        </div>
+                        <div class="col-md-2">
+                            <p>In stock only</p>
+                        </div>
+                    </div>
+                </div> 
+                <div class="row">
+                    <div class="container">
+                        <div class="col-md-2">
+                            <p>Price from: <input type="number" step="0.01" ng-model="searchController.priceFrom"></p>
+                        </div>
+                        <div class="col-md-2">
+                            <p>Price to: <input type="number" step="0.01" ng-model="searchController.priceTo"></p>
+                        </div>
+                        <div class="dropdown col-md-2 col-md-offset-2">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{searchController.color}}<span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li ng-repeat="color in colors" ng-click="filterColor(color)"><a href="#">{{color}}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- items list-->
+            <div class="container">
+                <div class="jumbotron" ng-repeat="item in searchController.items | filter:priceInRange | filter:dateInRange | filter:inStockCheck | filter:colorAsThis"> 
+                    <div class="row">
+                        <div class="container">
+                            <div class="col-md-2">
+                                <img src="{{item.image}}"></img>
+                            </div>
+                            <div class="col-md-10">
+                            <div class="row">
+                                <div class="container">
+                                    <div class="col-md-4" rating="item.rating">
+                                        {{item.name}}
+                                    </div>
+                                     <div class="col-md-2 col-offset-2">
+                                        {{toStringDate(item.issue_date)}}
+                                    </div>
+                                     <div class="col-md-2 col-offset-2">
+                                        {{item.price}}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="container">
+                                    <div class="col-md-2">
+                                        {{item.color}}
+                                    </div>
+                                     <div class="col-md-2 col-offset-2">
+                                        <p ng-show="item.in_stock">In stock</p>
+                                        <p ng-show="!item.in_stock">Not in stock</p>
+                                    </div>
+                                     <div class="col-md-2 col-offset-2" ng-controller="cartController">
+                                        <button class="btn btn-warning" ng-click=Order(item)>Order</button>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
